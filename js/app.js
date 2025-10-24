@@ -1,5 +1,101 @@
+// --- ACESSIBILIDADE (INTEGRAÇÃO DO PROJETO MODELO) ---
+const painelAcessibilidade = document.getElementById('painelAcessibilidade');
+const btnAbrirPainel = document.getElementById('btnAbrirPainel');
+const btnFecharPainel = document.getElementById('fecharPainel');
+const toggleModoEscuro = document.getElementById('toggleModoEscuro');
+const toggleAltoContraste = document.getElementById('toggleAltoContraste');
+const btnLerPagina = document.getElementById('btnLerPagina');
+const body = document.body; // Referência ao body para aplicar classes
+
+// 1. Persistência de Acessibilidade
+function getAcessibilidade() {
+    return JSON.parse(localStorage.getItem('mr_acessibilidade') || '{}');
+}
+function saveAcessibilidade(config) {
+    localStorage.setItem('mr_acessibilidade', JSON.stringify(config));
+}
+
+// 2. Aplica as classes salvas ao iniciar
+function aplicarAcessibilidade() {
+    const config = getAcessibilidade();
+    body.classList.toggle('modo-escuro', config.modoEscuro || false);
+    body.classList.toggle('alto-contraste', config.altoContraste || false);
+
+    toggleModoEscuro.textContent = config.modoEscuro ? 'Modo Escuro (Desativar)' : 'Modo Escuro (Ativar)';
+    toggleAltoContraste.textContent = config.altoContraste ? 'Alto Contraste (Desativar)' : 'Alto Contraste (Ativar)';
+}
+document.addEventListener('DOMContentLoaded', aplicarAcessibilidade);
+
+
+// 3. Listeners do Painel
+btnAbrirPainel?.addEventListener('click', () => {
+    painelAcessibilidade.classList.remove('hidden');
+    // Foco no painel para acessibilidade por teclado/leitores de tela
+    setTimeout(() => { painelAcessibilidade.focus(); }, 100); 
+});
+btnFecharPainel?.addEventListener('click', () => {
+    painelAcessibilidade.classList.add('hidden');
+});
+
+// 4. Toggle Modo Escuro
+toggleModoEscuro?.addEventListener('click', () => {
+    const config = getAcessibilidade();
+    config.modoEscuro = !config.modoEscuro;
+    config.altoContraste = false; // Desativa o Alto Contraste ao ligar/desligar o Modo Escuro
+    saveAcessibilidade(config);
+    aplicarAcessibilidade();
+});
+
+// 5. Toggle Alto Contraste
+toggleAltoContraste?.addEventListener('click', () => {
+    const config = getAcessibilidade();
+    config.altoContraste = !config.altoContraste;
+    config.modoEscuro = false; // Desativa o Modo Escuro ao ligar/desligar o Alto Contraste
+    saveAcessibilidade(config);
+    aplicarAcessibilidade();
+});
+
+
+// 6. Text-to-Speech (Leitura da Página)
+function lerPagina() {
+    if (!('speechSynthesis' in window)) {
+        alert('Seu navegador não suporta leitura de voz. Tente Chrome ou Edge.');
+        return;
+    }
+    window.speechSynthesis.cancel();
+    // Seleciona o texto principal para leitura
+    const textoCompleto = document.title + '. ' + Array.from(document.querySelectorAll('h1, h2, h3, p, label, button.tabbtn, strong')).map(el => el.textContent.trim()).join('. ');
+    
+    // Filtra textos duplicados ou vazios e remove emojis para leitura
+    const textoUnico = Array.from(new Set(textoCompleto.split('. ')))
+                        .filter(t => t.length > 5 && !t.includes('Instalar app') && !t.includes('instalar'))
+                        .join('. ');
+
+    const utterance = new SpeechSynthesisUtterance(textoUnico);
+    utterance.lang = 'pt-BR';
+    window.speechSynthesis.speak(utterance);
+}
+btnLerPagina?.addEventListener('click', lerPagina);
+
+
+// 7. Voice Input (simulado)
+document.querySelectorAll('.btn-voz').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const inputId = e.currentTarget.getAttribute('data-para');
+        const input = document.getElementById(inputId);
+        if (!input) return;
+
+        // Esta é uma simulação da funcionalidade de voz.
+        // A implementação real requer a Web Speech API (SpeechRecognition) e tratamento de permissões.
+        alert(`🎤 Função de entrada por voz ativada para o campo: ${input.placeholder || input.labels?.[0]?.textContent.trim() || input.id}.\nNo seu projeto, você precisará de JavaScript avançado (SpeechRecognition API) para a integração real.`);
+        input.focus();
+    });
+});
+// --- FIM ACESSIBILIDADE ---
+
+
 /* =========================
-   MeuRemédio – app.js COMPLETO (com aba Receitas/Fotos)
+   MeuRemédio – app.js (CÓDIGO ORIGINAL)
 ========================= */
 
 // ---------- Abas ----------
