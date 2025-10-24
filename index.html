@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>MeuRemédio</title>
+<title>MeuRemédio - Acessível</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#16a34a"/>
 <link rel="icon" href="img/icon-192.png" sizes="192x192">
@@ -11,8 +11,23 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+<div id="painelAcessibilidade" class="card hidden" style="position:fixed; top:10px; right:10px; z-index:1000; width:300px; max-width:90vw;" tabindex="-1" aria-modal="true">
+    <h3>Acessibilidade</h3>
+    <p class="note">Ajuste o visual do aplicativo para melhor leitura.</p>
+    <button id="toggleModoEscuro" class="btn-primary" style="margin-bottom:8px">Modo Escuro (Ativar)</button>
+    <button id="toggleAltoContraste" class="btn-primary">Alto Contraste (Desativar)</button>
+    <button id="fecharPainel" class="btn-secondary" style="margin-top:10px">Fechar</button>
+</div>
+
 <main class="container">
-  <h1 class="logo">💊 MeuRemédio</h1>
+  <div class="app-header">
+    <h1 class="logo" style="margin:0;">💊 MeuRemédio</h1>
+    <div class="acessibilidade-header">
+        <button class="btn-acessibilidade" id="btnAbrirPainel" aria-label="Abrir painel de acessibilidade">♿</button>
+        <button class="btn-acessibilidade" id="btnLerPagina" aria-label="Escutar todo o conteúdo da página em voz alta">🔊</button>
+    </div>
+  </div>
 
   <div class="tabs">
     <button id="tabLembretes" class="tabbtn active">Lembretes</button>
@@ -21,13 +36,15 @@
     <button id="btnInstall" class="tabbtn" style="display:none">Instalar app</button>
   </div>
 
-  <!-- ABA: LEMBRETES -->
   <section id="viewLembretes">
     <section class="card">
       <h2>Perfil</h2>
       <form id="formUser">
         <label for="nomeUsuario">Seu nome</label>
-        <input id="nomeUsuario" required placeholder="Digite seu nome"/>
+        <div class="input-with-voice">
+          <input id="nomeUsuario" required placeholder="Digite seu nome"/>
+          <button type="button" class="btn-voz" data-para="nomeUsuario" aria-label="Usar microfone para digitar seu nome">🎤</button>
+        </div>
         <button type="submit" class="btn-primary">Salvar nome</button>
       </form>
       <p id="boasVindas" class="note"></p>
@@ -38,7 +55,10 @@
       <form id="formMed">
         <input type="hidden" id="editId"/>
         <label>Nome do remédio</label>
-        <input id="medNome" required placeholder="Ex.: Losartana"/>
+        <div class="input-with-voice">
+          <input id="medNome" required placeholder="Ex.: Losartana"/>
+          <button type="button" class="btn-voz" data-para="medNome" aria-label="Usar microfone para digitar o nome do remédio">🎤</button>
+        </div>
 
         <label>Tipo</label>
         <div class="chips" data-group="tipo">
@@ -88,7 +108,6 @@
     </section>
   </section>
 
-  <!-- ABA: CALENDÁRIO -->
   <section id="viewCalendario" class="hidden">
     <section class="card">
       <h2>Calendário</h2>
@@ -105,14 +124,16 @@
         <label>Data</label>
         <input type="date" id="calData">
         <label>Descrição</label>
-        <input id="calTexto" placeholder="Ex.: Consulta com Dr. João 14h">
+        <div class="input-with-voice">
+          <input id="calTexto" placeholder="Ex.: Consulta com Dr. João 14h">
+          <button type="button" class="btn-voz" data-para="calTexto" aria-label="Usar microfone para digitar a descrição">🎤</button>
+        </div>
         <button id="btnAddCal" class="btn-primary">Adicionar ao dia</button>
         <div id="calEventos"></div>
       </div>
     </section>
   </section>
 
-  <!-- ABA: RECEITAS E FOTOS -->
   <section id="viewReceitas" class="hidden">
     <section class="card">
       <h2>Receitas e Fotos</h2>
@@ -120,7 +141,10 @@
       <form id="formFoto">
         <input type="hidden" id="fotoId"/>
         <label>Nome do remédio</label>
-        <input id="fotoNome" required placeholder="Ex.: Losartana 50 mg"/>
+        <div class="input-with-voice">
+          <input id="fotoNome" required placeholder="Ex.: Losartana 50 mg"/>
+          <button type="button" class="btn-voz" data-para="fotoNome" aria-label="Usar microfone para digitar o nome do registro de receita">🎤</button>
+        </div>
 
         <div class="grid2">
           <div>
@@ -139,7 +163,10 @@
         <input id="fotoData" type="date">
 
         <label>Observações (opcional)</label>
-        <input id="fotoObs" placeholder="Ex.: tomar após o almoço">
+        <div class="input-with-voice">
+          <input id="fotoObs" placeholder="Ex.: tomar após o almoço">
+          <button type="button" class="btn-voz" data-para="fotoObs" aria-label="Usar microfone para digitar as observações">🎤</button>
+        </div>
 
         <div class="row">
           <button type="submit" class="btn-primary" id="btnSalvarFoto">Salvar registro</button>
