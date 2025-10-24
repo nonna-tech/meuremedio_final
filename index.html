@@ -1,184 +1,226 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>MeuRemédio - Acessível</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#16a34a"/>
-<link rel="icon" href="img/icon-192.png" sizes="192x192">
-<link rel="apple-touch-icon" href="img/icon-192.png">
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+  <title>MeuRemédio</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#16a34a"/>
+  <link rel="icon" href="img/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-<div id="painelAcessibilidade" class="card hidden" style="position:fixed; top:10px; right:10px; z-index:1000; width:300px; max-width:90vw;" tabindex="-1" aria-modal="true">
-    <h3>Acessibilidade</h3>
-    <p class="note">Ajuste o visual do aplicativo para melhor leitura.</p>
-    <button id="toggleModoEscuro" class="btn-primary" style="margin-bottom:8px">Modo Escuro (Ativar)</button>
-    <button id="toggleAltoContraste" class="btn-primary">Alto Contraste (Desativar)</button>
-    <button id="fecharPainel" class="btn-secondary" style="margin-top:10px">Fechar</button>
-</div>
-
-<main class="container">
-  <div class="app-header">
-    <h1 class="logo" style="margin:0;">💊 MeuRemédio</h1>
-    <div class="acessibilidade-header">
-        <button class="btn-acessibilidade" id="btnAbrirPainel" aria-label="Abrir painel de acessibilidade">♿</button>
-        <button class="btn-acessibilidade" id="btnLerPagina" aria-label="Escutar todo o conteúdo da página em voz alta">🔊</button>
+  <header class="app-header" aria-label="MeuRemédio">
+    <div class="logo"><span class="pill">💊</span><h1>MeuRemédio</h1></div>
+    <div class="a11y-actions">
+      <button id="btnOpenA11y" class="btn-a11y" aria-label="Abrir painel de acessibilidade">♿</button>
+      <button id="btnReadPage" class="btn-a11y" aria-label="Ler esta página em voz alta">🔊</button>
+      <button id="btnInstall" class="btn-a11y" style="display:none" aria-label="Instalar app">⬇️</button>
     </div>
-  </div>
+  </header>
 
-  <div class="tabs">
-    <button id="tabLembretes" class="tabbtn active">Lembretes</button>
-    <button id="tabCalendario" class="tabbtn">Calendário (bônus)</button>
-    <button id="tabReceitas" class="tabbtn">Receitas e Fotos</button>
-    <button id="btnInstall" class="tabbtn" style="display:none">Instalar app</button>
-  </div>
+  <!-- Painel lateral de acessibilidade -->
+  <aside id="painelA11y" class="painel-a11y" aria-label="Opções de acessibilidade">
+    <h2>Acessibilidade</h2>
+    <div class="opt">
+      <label><input type="checkbox" id="optSimplificada"> Ativar visão simplificada</label>
+      <small>Mais foco: ícones maiores e menos texto.</small>
+    </div>
+    <div class="opt">
+      <label><input type="checkbox" id="optAltoContraste"> Alto contraste</label>
+    </div>
+    <div class="opt">
+      <label><input type="checkbox" id="optModoEscuro"> Modo escuro</label>
+    </div>
+    <div class="opt">
+      <label for="fontRange">Tamanho da fonte</label>
+      <input id="fontRange" type="range" min="16" max="22" step="1" value="18">
+    </div>
+    <button id="btnFecharA11y" class="btn-secondary">Fechar</button>
+  </aside>
 
-  <section id="viewLembretes">
-    <section class="card">
-      <h2>Perfil</h2>
-      <form id="formUser">
-        <label for="nomeUsuario">Seu nome</label>
-        <div class="input-with-voice">
+  <main class="container">
+    <!-- Tabs topo -->
+    <nav class="tabs">
+      <button id="tabLembretes" class="tabbtn active">Lembretes</button>
+      <button id="tabCalendario" class="tabbtn">Calendário (bônus)</button>
+      <button id="tabReceitas" class="tabbtn">Receitas e Fotos</button>
+    </nav>
+
+    <!-- Boas-vindas + call to action do assistente -->
+    <section class="card" id="boasVindasCard">
+      <h2>Bem-vindo(a) ao MeuRemédio</h2>
+      <p id="boasVindas"></p>
+      <div class="row">
+        <form id="formUser" class="inline-form">
+          <label for="nomeUsuario">Seu nome</label>
           <input id="nomeUsuario" required placeholder="Digite seu nome"/>
-          <button type="button" class="btn-voz" data-para="nomeUsuario" aria-label="Usar microfone para digitar seu nome">🎤</button>
-        </div>
-        <button type="submit" class="btn-primary">Salvar nome</button>
-      </form>
-      <p id="boasVindas" class="note"></p>
+          <button type="submit" class="btn-primary">Salvar nome</button>
+          <button type="button" class="btn-voice" data-para="nomeUsuario" aria-label="Ditado por voz">🎤</button>
+        </form>
+        <button id="btnAssistente" class="btn-secondary">Cadastrar com Assistente</button>
+      </div>
     </section>
 
-    <section class="card">
-      <h2>Cadastrar / Editar Remédio</h2>
-      <form id="formMed">
-        <input type="hidden" id="editId"/>
-        <label>Nome do remédio</label>
-        <div class="input-with-voice">
+    <!-- Lembretes -->
+    <section id="viewLembretes">
+      <section class="card">
+        <h2>Cadastrar / Editar Remédio</h2>
+        <form id="formMed">
+          <input type="hidden" id="editId"/>
+          <label>Nome do remédio</label>
           <input id="medNome" required placeholder="Ex.: Losartana"/>
-          <button type="button" class="btn-voz" data-para="medNome" aria-label="Usar microfone para digitar o nome do remédio">🎤</button>
-        </div>
+          <button type="button" class="btn-voice" data-para="medNome" aria-label="Ditado por voz">🎤</button>
 
-        <label>Tipo</label>
-        <div class="chips" data-group="tipo">
-          <button type="button" class="chip" data-value="pílula">Pílula</button>
-          <button type="button" class="chip" data-value="líquido">Líquido</button>
-          <button type="button" class="chip" data-value="cápsula">Cápsula</button>
-          <button type="button" class="chip" data-value="spray">Spray</button>
-          <button type="button" class="chip" data-value="insulina">Insulina</button>
-          <button type="button" class="chip" data-value="tipoOutro">Outro</button>
-        </div>
-        <input id="tipoOutro" class="hidden" placeholder="Digite o tipo (ex.: pomada)"/>
+          <label>Tipo</label>
+          <div class="chips" data-group="tipo">
+            <button type="button" class="chip" data-value="pílula">Pílula</button>
+            <button type="button" class="chip" data-value="líquido">Líquido</button>
+            <button type="button" class="chip" data-value="cápsula">Cápsula</button>
+            <button type="button" class="chip" data-value="spray">Spray</button>
+            <button type="button" class="chip" data-value="insulina">Insulina</button>
+            <button type="button" class="chip" data-value="tipoOutro">Outro</button>
+          </div>
+          <input id="tipoOutro" class="hidden" placeholder="Digite o tipo (ex.: pomada)"/>
 
-        <label>Dosagem</label>
-        <div class="chips" data-group="dose">
+          <label>Dosagem</label>
+          <div class="chips" data-group="dose">
+            <button type="button" class="chip" data-value="5mg">5 mg</button>
+            <button type="button" class="chip" data-value="10mg">10 mg</button>
+            <button type="button" class="chip" data-value="25mg">25 mg</button>
+            <button type="button" class="chip" data-value="50mg">50 mg</button>
+            <button type="button" class="chip" data-value="100mg">100 mg</button>
+            <button type="button" class="chip" data-value="doseOutro">Outro</button>
+          </div>
+          <input id="doseOutro" class="hidden" placeholder="Digite a dosagem (ex.: 75 mg ou 10 ml)"/>
+
+          <label>Quantidade</label>
+          <div class="chips" data-group="qtd">
+            <button type="button" class="chip" data-value="1/2">½</button>
+            <button type="button" class="chip" data-value="1">1</button>
+            <button type="button" class="chip" data-value="2">2</button>
+            <button type="button" class="chip" data-value="3">3</button>
+            <button type="button" class="chip" data-value="5">5</button>
+            <button type="button" class="chip" data-value="10">10</button>
+            <button type="button" class="chip" data-value="20">20</button>
+            <button type="button" class="chip" data-value="qtdOutro">Outro</button>
+          </div>
+          <input id="qtdOutro" class="hidden" placeholder="Digite a quantidade (ex.: 30 gotas)"/>
+
+          <label>Horário de tomar</label>
+          <input id="medHora" type="time" required/>
+
+          <div class="row">
+            <button type="submit" class="btn-primary" id="btnSalvar">Salvar</button>
+            <button type="button" class="btn-secondary hidden" id="btnCancelarEdicao">Cancelar</button>
+          </div>
+        </form>
+        <div id="lista"></div>
+      </section>
+    </section>
+
+    <!-- Calendário -->
+    <section id="viewCalendario" class="hidden">
+      <section class="card">
+        <h2>Calendário</h2>
+        <p class="note">Use para marcar consultas e lembretes do dia.</p>
+        <div class="calendario-head">
+          <button id="prevMes" class="btn-icon">◀</button>
+          <span id="mesAno"></span>
+          <button id="proxMes" class="btn-icon">▶</button>
+        </div>
+        <div id="calendario" class="grid-cal"></div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Adicionar evento</h3>
+          <label>Data</label>
+          <input type="date" id="calData">
+          <label>Descrição</label>
+          <input id="calTexto" placeholder="Ex.: Consulta com Dr. João 14h">
+          <button id="btnAddCal" class="btn-primary">Adicionar ao dia</button>
+          <div id="calEventos"></div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Receitas -->
+    <section id="viewReceitas" class="hidden">
+      <section class="card">
+        <h2>Receitas e Fotos</h2>
+        <form id="formFoto">
+          <input type="hidden" id="fotoId">
+          <label>Nome do remédio</label>
+          <input id="fotoNome" placeholder="Ex.: Losartana 50 mg">
+          <label>Foto da receita (opcional)</label>
+          <input type="file" id="inpFotoReceita2" accept="image/*">
+          <img id="prevRec2" class="preview hidden" alt="Prévia da receita"/>
+          <label>Foto do medicamento (opcional)</label>
+          <input type="file" id="inpFotoMed2" accept="image/*">
+          <img id="prevMed2" class="preview hidden" alt="Prévia do remédio"/>
+          <label>Data da receita (opcional)</label>
+          <input id="fotoData" type="date">
+          <label>Observações (opcional)</label>
+          <input id="fotoObs" placeholder="Ex.: tomar após o almoço">
+          <div class="row">
+            <button class="btn-primary" type="submit">Salvar registro</button>
+            <button id="btnCancelFoto" type="button" class="btn-secondary hidden">Cancelar</button>
+          </div>
+        </form>
+        <div id="galeria"></div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Assistente (inspirado no modelo do seu colega) -->
+  <div id="assistente" class="assistant-overlay hidden" aria-modal="true" role="dialog">
+    <div class="assistant">
+      <button id="assistenteFechar" class="btn-icon close">✖</button>
+
+      <div class="passo ativo" data-step="1">
+        <div class="passo-icone">💊</div>
+        <h2>Qual o nome do remédio?</h2>
+        <div class="grupo-formulario assist">
+          <label for="aNome">Nome do medicamento</label>
+          <input id="aNome" placeholder="Ex: Dipirona">
+          <button class="btn-voice" data-para="aNome">🎤</button>
+        </div>
+        <button class="btn-primary next">Próximo</button>
+      </div>
+
+      <div class="passo" data-step="2">
+        <h2>Qual é a dose?</h2>
+        <div class="chips wrap" data-group="aDose">
           <button type="button" class="chip" data-value="5mg">5 mg</button>
           <button type="button" class="chip" data-value="10mg">10 mg</button>
           <button type="button" class="chip" data-value="25mg">25 mg</button>
           <button type="button" class="chip" data-value="50mg">50 mg</button>
           <button type="button" class="chip" data-value="100mg">100 mg</button>
-          <button type="button" class="chip" data-value="doseOutro">Outro</button>
         </div>
-        <input id="doseOutro" class="hidden" placeholder="Digite a dosagem (ex.: 75 mg ou 10 ml)"/>
-
-        <label>Quantidade</label>
-        <div class="chips" data-group="qtd">
-          <button type="button" class="chip" data-value="1/2">½</button>
-          <button type="button" class="chip" data-value="1">1</button>
-          <button type="button" class="chip" data-value="2">2</button>
-          <button type="button" class="chip" data-value="3">3</button>
-          <button type="button" class="chip" data-value="5">5</button>
-          <button type="button" class="chip" data-value="10">10</button>
-          <button type="button" class="chip" data-value="20">20</button>
-          <button type="button" class="chip" data-value="qtdOutro">Outro</button>
-        </div>
-        <input id="qtdOutro" class="hidden" placeholder="Digite a quantidade (ex.: 30 gotas)"/>
-
-        <label>Horário de tomar</label>
-        <input id="medHora" type="time" required/>
-
+        <input id="aDoseOutro" placeholder="Outro (ex.: 75 mg)" class="mt8">
         <div class="row">
-          <button type="submit" class="btn-primary" id="btnSalvar">Salvar</button>
-          <button type="button" class="btn-secondary hidden" id="btnCancelarEdicao">Cancelar</button>
+          <button class="btn-secondary prev">Voltar</button>
+          <button class="btn-primary next">Próximo</button>
         </div>
-      </form>
-
-      <div id="lista"></div>
-    </section>
-  </section>
-
-  <section id="viewCalendario" class="hidden">
-    <section class="card">
-      <h2>Calendário</h2>
-      <p class="note">Use para marcar consultas e lembretes do dia.</p>
-      <div class="calendario-head">
-        <button id="prevMes" class="btn-icon">◀</button>
-        <span id="mesAno"></span>
-        <button id="proxMes" class="btn-icon">▶</button>
       </div>
-      <div id="calendario" class="grid-cal"></div>
 
-      <div class="card" style="margin-top:12px">
-        <h3>Adicionar evento</h3>
-        <label>Data</label>
-        <input type="date" id="calData">
-        <label>Descrição</label>
-        <div class="input-with-voice">
-          <input id="calTexto" placeholder="Ex.: Consulta com Dr. João 14h">
-          <button type="button" class="btn-voz" data-para="calTexto" aria-label="Usar microfone para digitar a descrição">🎤</button>
-        </div>
-        <button id="btnAddCal" class="btn-primary">Adicionar ao dia</button>
-        <div id="calEventos"></div>
-      </div>
-    </section>
-  </section>
-
-  <section id="viewReceitas" class="hidden">
-    <section class="card">
-      <h2>Receitas e Fotos</h2>
-      <p class="note">Guarde as imagens da receita e do medicamento. Opcional, para mostrar na farmácia ou ao médico.</p>
-      <form id="formFoto">
-        <input type="hidden" id="fotoId"/>
-        <label>Nome do remédio</label>
-        <div class="input-with-voice">
-          <input id="fotoNome" required placeholder="Ex.: Losartana 50 mg"/>
-          <button type="button" class="btn-voz" data-para="fotoNome" aria-label="Usar microfone para digitar o nome do registro de receita">🎤</button>
-        </div>
-
-        <div class="grid2">
-          <div>
-            <label>Foto da receita</label>
-            <input id="inpFotoReceita2" type="file" accept="image/*">
-            <img id="prevRec2" class="preview hidden" alt="Prévia receita">
-          </div>
-          <div>
-            <label>Foto do medicamento</label>
-            <input id="inpFotoMed2" type="file" accept="image/*">
-            <img id="prevMed2" class="preview hidden" alt="Prévia medicamento">
-          </div>
-        </div>
-
-        <label>Data da receita (opcional)</label>
-        <input id="fotoData" type="date">
-
-        <label>Observações (opcional)</label>
-        <div class="input-with-voice">
-          <input id="fotoObs" placeholder="Ex.: tomar após o almoço">
-          <button type="button" class="btn-voz" data-para="fotoObs" aria-label="Usar microfone para digitar as observações">🎤</button>
-        </div>
-
+      <div class="passo" data-step="3">
+        <h2>Qual horário tomar?</h2>
+        <input id="aHora" type="time">
         <div class="row">
-          <button type="submit" class="btn-primary" id="btnSalvarFoto">Salvar registro</button>
-          <button type="button" class="btn-secondary hidden" id="btnCancelFoto">Cancelar</button>
+          <button class="btn-secondary prev">Voltar</button>
+          <button id="assistSalvar" class="btn-primary">Salvar</button>
         </div>
-      </form>
+      </div>
 
-      <div id="galeria" class="card"></div>
-    </section>
-  </section>
-</main>
+      <div class="passo" data-step="4">
+        <div class="passo-icone">🎉</div>
+        <h2>Pronto!</h2>
+        <p>Seu remédio foi salvo.</p>
+      </div>
+    </div>
+  </div>
 
-<script src="js/app.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

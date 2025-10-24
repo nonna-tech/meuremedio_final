@@ -1,138 +1,75 @@
-// --- ACESSIBILIDADE (INTEGRAÇÃO DO PROJETO MODELO) ---
-const painelAcessibilidade = document.getElementById('painelAcessibilidade');
-const btnAbrirPainel = document.getElementById('btnAbrirPainel');
-const btnFecharPainel = document.getElementById('fecharPainel');
-const toggleModoEscuro = document.getElementById('toggleModoEscuro');
-const toggleAltoContraste = document.getElementById('toggleAltoContraste');
-const btnLerPagina = document.getElementById('btnLerPagina');
-const body = document.body; // Referência ao body para aplicar classes
-
-// 1. Persistência de Acessibilidade
-function getAcessibilidade() {
-    return JSON.parse(localStorage.getItem('mr_acessibilidade') || '{}');
-}
-function saveAcessibilidade(config) {
-    localStorage.setItem('mr_acessibilidade', JSON.stringify(config));
-}
-
-// 2. Aplica as classes salvas ao iniciar
-function aplicarAcessibilidade() {
-    const config = getAcessibilidade();
-    body.classList.toggle('modo-escuro', config.modoEscuro || false);
-    body.classList.toggle('alto-contraste', config.altoContraste || false);
-
-    toggleModoEscuro.textContent = config.modoEscuro ? 'Modo Escuro (Desativar)' : 'Modo Escuro (Ativar)';
-    toggleAltoContraste.textContent = config.altoContraste ? 'Alto Contraste (Desativar)' : 'Alto Contraste (Ativar)';
-}
-document.addEventListener('DOMContentLoaded', aplicarAcessibilidade);
-
-
-// 3. Listeners do Painel
-btnAbrirPainel?.addEventListener('click', () => {
-    painelAcessibilidade.classList.remove('hidden');
-    // Foco no painel para acessibilidade por teclado/leitores de tela
-    setTimeout(() => { painelAcessibilidade.focus(); }, 100); 
-});
-btnFecharPainel?.addEventListener('click', () => {
-    painelAcessibilidade.classList.add('hidden');
-});
-
-// 4. Toggle Modo Escuro
-toggleModoEscuro?.addEventListener('click', () => {
-    const config = getAcessibilidade();
-    config.modoEscuro = !config.modoEscuro;
-    config.altoContraste = false; // Desativa o Alto Contraste ao ligar/desligar o Modo Escuro
-    saveAcessibilidade(config);
-    aplicarAcessibilidade();
-});
-
-// 5. Toggle Alto Contraste
-toggleAltoContraste?.addEventListener('click', () => {
-    const config = getAcessibilidade();
-    config.altoContraste = !config.altoContraste;
-    config.modoEscuro = false; // Desativa o Modo Escuro ao ligar/desligar o Alto Contraste
-    saveAcessibilidade(config);
-    aplicarAcessibilidade();
-});
-
-
-// 6. Text-to-Speech (Leitura da Página)
-function lerPagina() {
-    if (!('speechSynthesis' in window)) {
-        alert('Seu navegador não suporta leitura de voz. Tente Chrome ou Edge.');
-        return;
-    }
-    window.speechSynthesis.cancel();
-    // Seleciona o texto principal para leitura
-    const textoCompleto = document.title + '. ' + Array.from(document.querySelectorAll('h1, h2, h3, p, label, button.tabbtn, strong')).map(el => el.textContent.trim()).join('. ');
-    
-    // Filtra textos duplicados ou vazios e remove emojis para leitura
-    const textoUnico = Array.from(new Set(textoCompleto.split('. ')))
-                        .filter(t => t.length > 5 && !t.includes('Instalar app') && !t.includes('instalar'))
-                        .join('. ');
-
-    const utterance = new SpeechSynthesisUtterance(textoUnico);
-    utterance.lang = 'pt-BR';
-    window.speechSynthesis.speak(utterance);
-}
-btnLerPagina?.addEventListener('click', lerPagina);
-
-
-// 7. Voice Input (simulado)
-document.querySelectorAll('.btn-voz').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const inputId = e.currentTarget.getAttribute('data-para');
-        const input = document.getElementById(inputId);
-        if (!input) return;
-
-        // Esta é uma simulação da funcionalidade de voz.
-        // A implementação real requer a Web Speech API (SpeechRecognition) e tratamento de permissões.
-        alert(`🎤 Função de entrada por voz ativada para o campo: ${input.placeholder || input.labels?.[0]?.textContent.trim() || input.id}.\nNo seu projeto, você precisará de JavaScript avançado (SpeechRecognition API) para a integração real.`);
-        input.focus();
-    });
-});
-// --- FIM ACESSIBILIDADE ---
-
-
-/* =========================
-   MeuRemédio – app.js (CÓDIGO ORIGINAL)
-========================= */
-
-// ---------- Abas ----------
+/* MeuRemédio – upgrade orientado por acessibilidade */
+// Tabs
 const tabL = document.getElementById('tabLembretes');
 const tabC = document.getElementById('tabCalendario');
 const tabR = document.getElementById('tabReceitas');
-
 const viewL = document.getElementById('viewLembretes');
 const viewC = document.getElementById('viewCalendario');
 const viewR = document.getElementById('viewReceitas');
 
-function show(view, isActive) {
-  if (!view) return;
-  if (isActive) view.classList.remove('hidden');
-  else view.classList.add('hidden');
+function show(view, ok){ if(!view) return; view.classList.toggle('hidden', !ok); }
+function ativa(qual){ show(viewL, qual==='L'); show(viewC, qual==='C'); show(viewR, qual==='R');
+  tabL.classList.toggle('active', qual==='L'); tabC.classList.toggle('active', qual==='C'); tabR.classList.toggle('active', qual==='R'); }
+tabL.addEventListener('click',()=>ativa('L'));
+tabC.addEventListener('click',()=>ativa('C'));
+tabR.addEventListener('click',()=>ativa('R'));
+ativa('L');
+
+/* ========= Acessibilidade ========= */
+const painel = document.getElementById('painelA11y');
+document.getElementById('btnOpenA11y').onclick = ()=> painel.classList.add('aberto');
+document.getElementById('btnFecharA11y').onclick = ()=> painel.classList.remove('aberto');
+
+const LS = (k,v)=> v===undefined ? JSON.parse(localStorage.getItem(k)||'null') : localStorage.setItem(k, JSON.stringify(v));
+const optSimplificada = document.getElementById('optSimplificada');
+const optAltoContraste = document.getElementById('optAltoContraste');
+const optModoEscuro = document.getElementById('optModoEscuro');
+const fontRange = document.getElementById('fontRange');
+
+function applyPrefs(){
+  document.body.classList.toggle('simplificada', !!LS('mr_simplificada'));
+  document.body.classList.toggle('altocontraste', !!LS('mr_altocontraste'));
+  document.body.classList.toggle('modoescuro', !!LS('mr_modoescuro'));
+  document.documentElement.style.fontSize = (LS('mr_fontsize')||18) + 'px';
+  optSimplificada.checked = !!LS('mr_simplificada');
+  optAltoContraste.checked = !!LS('mr_altocontraste');
+  optModoEscuro.checked = !!LS('mr_modoescuro');
+  fontRange.value = LS('mr_fontsize')||18;
 }
+applyPrefs();
+optSimplificada.onchange = ()=>{ LS('mr_simplificada', optSimplificada.checked); applyPrefs(); }
+optAltoContraste.onchange = ()=>{ LS('mr_altocontraste', optAltoContraste.checked); applyPrefs(); }
+optModoEscuro.onchange = ()=>{ LS('mr_modoescuro', optModoEscuro.checked); applyPrefs(); }
+fontRange.oninput = ()=>{ LS('mr_fontsize', +fontRange.value); applyPrefs(); }
 
-function ativarAba(alvo) {
-  show(viewL, alvo === 'L');
-  show(viewC, alvo === 'C');
-  show(viewR, alvo === 'R');
+// Ler página (TTS)
+document.getElementById('btnReadPage').onclick = ()=>{
+  try{
+    const utter = new SpeechSynthesisUtterance(document.querySelector('main').innerText);
+    utter.lang = 'pt-BR';
+    speechSynthesis.cancel(); speechSynthesis.speak(utter);
+  }catch(e){ alert('Leitura por voz não suportada neste dispositivo.'); }
+};
 
-  tabL?.classList.toggle('active', alvo === 'L');
-  tabC?.classList.toggle('active', alvo === 'C');
-  tabR?.classList.toggle('active', alvo === 'R');
+// Ditado de voz (SpeechRecognition)
+function attachVoiceButtons(){
+  document.querySelectorAll('.btn-voice').forEach(btn=>{
+    const targetId = btn.dataset.para;
+    btn.onclick = ()=>{
+      const input = document.getElementById(targetId);
+      if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)){
+        alert('Ditado por voz não suportado neste dispositivo.'); return;
+      }
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const rec = new SR(); rec.lang='pt-BR'; rec.interimResults=false; rec.maxAlternatives=1;
+      rec.onresult = (e)=>{ input.value = e.results[0][0].transcript; input.focus(); };
+      rec.start();
+    };
+  });
 }
+attachVoiceButtons();
 
-// listeners
-tabL?.addEventListener('click', () => ativarAba('L'));
-tabC?.addEventListener('click', () => ativarAba('C'));
-tabR?.addEventListener('click', () => ativarAba('R'));
-
-// estado inicial
-ativarAba('L');
-
-
-// ---------- Persistência ----------
+/* ========= Dados ========= */
 const DB_KEY='mr_remedios', CAL_KEY='mr_calendar', FOTOS_KEY='mr_fotos';
 const getAll=()=>JSON.parse(localStorage.getItem(DB_KEY)||'[]');
 const saveAll=(a)=>localStorage.setItem(DB_KEY,JSON.stringify(a));
@@ -141,7 +78,7 @@ const saveCal=(o)=>localStorage.setItem(CAL_KEY,JSON.stringify(o));
 const getFotos=()=>JSON.parse(localStorage.getItem(FOTOS_KEY)||'[]');
 const saveFotos=(a)=>localStorage.setItem(FOTOS_KEY,JSON.stringify(a));
 
-// ---------- Perfil ----------
+/* ========= Perfil ========= */
 const boasVindas=document.getElementById('boasVindas');
 const nomeInput=document.getElementById('nomeUsuario');
 document.addEventListener('DOMContentLoaded',()=>{
@@ -149,24 +86,21 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(nomeInput) nomeInput.value=nome;
   if(boasVindas && nome) boasVindas.textContent='Olá, '+nome+'!';
 });
-document.getElementById('formUser')?.addEventListener('submit',(e)=>{
+document.getElementById('formUser').addEventListener('submit',(e)=>{
   e.preventDefault();
   const nome=nomeInput.value.trim();
   localStorage.setItem('mr_usuario',nome);
-  if(boasVindas) boasVindas.textContent='Olá, '+nome+'!';
+  boasVindas.textContent='Olá, '+nome+'!';
 });
 
-// ---------- Chips ----------
+/* ========= Chips (seleção) ========= */
 function setupChips(){
   document.querySelectorAll('.chips').forEach(g=>{
     g.addEventListener('click',(ev)=>{
       const b=ev.target.closest('.chip'); if(!b) return;
       const isOutro = /Outro$/.test(b.dataset.value||'');
-      if(isOutro){
-        const id=b.dataset.value; const el=document.getElementById(id);
-        if(el){ el.classList.toggle('hidden'); el.focus(); }
-        return;
-      }
+      if(isOutro){ const id=b.dataset.value; const el=document.getElementById(id);
+        if(el){ el.classList.toggle('hidden'); el.focus(); } return; }
       g.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
       b.classList.add('selected');
     });
@@ -182,17 +116,32 @@ function chipValue(group){
   return '';
 }
 
-// ---------- Upload/Prévia fotos (helpers) ----------
-function fileToDataURL(f,cb){ const r=new FileReader(); r.onload=()=>cb(r.result); r.readAsDataURL(f); }
-const fotoReceita=document.getElementById('fotoReceita');
-const fotoMedicamento=document.getElementById('fotoMedicamento');
-const prevReceita=document.getElementById('prevReceita');
-const prevMedicamento=document.getElementById('prevMedicamento');
-let fotoReceitaData='', fotoMedicamentoData='';
-fotoReceita?.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; fileToDataURL(f,(d)=>{ fotoReceitaData=d; prevReceita.src=d; prevReceita.classList.remove('hidden'); }); });
-fotoMedicamento?.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; fileToDataURL(f,(d)=>{ fotoMedicamentoData=d; prevMedicamento.src=d; prevMedicamento.classList.remove('hidden'); }); });
+/* ========= Upload/Compressão de fotos ========= */
+function fileToDataURL(file, cb, maxW = 1024, quality = 0.8) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      if (img.width <= maxW) return cb(reader.result);
+      const scale = maxW / img.width;
+      const canvas = document.createElement('canvas');
+      canvas.width = maxW; canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext('2d'); ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      cb(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+let recData2='', medData2='';
+document.getElementById('inpFotoReceita2').addEventListener('change',(e)=>{
+  const f=e.target.files?.[0]; if(!f) return; fileToDataURL(f,(d)=>{ recData2=d; const img=document.getElementById('prevRec2'); img.src=d; img.classList.remove('hidden'); });
+});
+document.getElementById('inpFotoMed2').addEventListener('change',(e)=>{
+  const f=e.target.files?.[0]; if(!f) return; fileToDataURL(f,(d)=>{ medData2=d; const img=document.getElementById('prevMed2'); img.src=d; img.classList.remove('hidden'); });
+});
 
-// ---------- CRUD Remédios ----------
+/* ========= CRUD Lembretes ========= */
 const formMed=document.getElementById('formMed');
 const listaDiv=document.getElementById('lista');
 const editIdInput=document.getElementById('editId');
@@ -201,7 +150,7 @@ const btnSalvar=document.getElementById('btnSalvar');
 
 function renderLista(){
   const dados=getAll();
-  if(!dados.length){ listaDiv.innerHTML='<p>Nenhum remédio cadastrado.</p>'; return; }
+  if(!dados.length){ listaDiv.innerHTML='<p class="note">Nenhum remédio cadastrado.</p>'; return; }
   listaDiv.innerHTML='';
   dados.forEach((r,idx)=>{
     const el=document.createElement('div');
@@ -214,22 +163,17 @@ function renderLista(){
       +'<button class="btn-icon toggle" title="Pausar/Ativar" data-idx="'+idx+'">'+(r.ativo?'🔔':'🔕')+'</button> '
       +'<button class="btn-icon edit" title="Editar" data-idx="'+idx+'">✏️</button> '
       +'<button class="btn-icon del" title="Excluir" data-idx="'+idx+'">❌</button> '
-      +'<button class="btn-icon share" title="Compartilhar" data-idx="'+idx+'">📤</button>'
       +'</div>';
     listaDiv.appendChild(el);
   });
-
   listaDiv.querySelectorAll('.toggle').forEach(b=>b.addEventListener('click',(ev)=>{
-    const i=Number(ev.currentTarget.getAttribute('data-idx'));
-    const arr=getAll(); arr[i].ativo=!arr[i].ativo; saveAll(arr); renderLista();
+    const i=+ev.currentTarget.getAttribute('data-idx'); const arr=getAll(); arr[i].ativo=!arr[i].ativo; saveAll(arr); renderLista();
   }));
   listaDiv.querySelectorAll('.del').forEach(b=>b.addEventListener('click',(ev)=>{
-    const i=Number(ev.currentTarget.getAttribute('data-idx'));
-    const arr=getAll(); arr.splice(i,1); saveAll(arr); renderLista();
+    const i=+ev.currentTarget.getAttribute('data-idx'); const arr=getAll(); arr.splice(i,1); saveAll(arr); renderLista();
   }));
   listaDiv.querySelectorAll('.edit').forEach(b=>b.addEventListener('click',(ev)=>{
-    const i=Number(ev.currentTarget.getAttribute('data-idx'));
-    const arr=getAll(); const r=arr[i];
+    const i=+ev.currentTarget.getAttribute('data-idx'); const arr=getAll(); const r=arr[i];
     editIdInput.value=r.id;
     document.getElementById('medNome').value=r.nome||'';
     document.getElementById('medHora').value=r.hora||'';
@@ -238,33 +182,18 @@ function renderLista(){
     btnCancelarEdicao.classList.remove('hidden'); btnSalvar.textContent='Salvar alterações';
     window.scrollTo({top:0,behavior:'smooth'});
   }));
-
-  // compartilhar
-  listaDiv.querySelectorAll('.share').forEach(b => b.addEventListener('click', ev => {
-    const i = Number(ev.currentTarget.getAttribute('data-idx'));
-    const r = getAll()[i]; if(!r) return;
-    const texto = `💊 Lembrete: tomar ${r.nome}${r.dose ? ' ' + r.dose : ''} às ${r.hora}.`;
-    const url = location.href;
-    if (navigator.share) {
-      navigator.share({ title: 'MeuRemédio', text: texto, url }).catch(()=>{});
-    } else {
-      const wa = 'https://wa.me/?text=' + encodeURIComponent(texto + ' ' + url);
-      window.open(wa, '_blank');
-    }
-  }));
 }
 function selectChip(group,val){
   const g=document.querySelector('.chips[data-group="'+group+'"]'); if(!g) return;
-  let ok=false;
-  g.querySelectorAll('.chip').forEach(ch=>{ if(ch.dataset.value===val){ ch.classList.add('selected'); ok=true; } else ch.classList.remove('selected'); });
+  let ok=false; g.querySelectorAll('.chip').forEach(ch=>{ if(ch.dataset.value===val){ ch.classList.add('selected'); ok=true; } else ch.classList.remove('selected'); });
   if(!ok && val){ const outro=document.getElementById(group+'Outro'); if(outro){ outro.classList.remove('hidden'); outro.value=val; } }
 }
-btnCancelarEdicao?.addEventListener('click',()=>{
+btnCancelarEdicao.addEventListener('click',()=>{
   editIdInput.value=''; formMed.reset();
   document.querySelectorAll('.chip.selected').forEach(c=>c.classList.remove('selected'));
   btnCancelarEdicao.classList.add('hidden'); btnSalvar.textContent='Salvar';
 });
-formMed?.addEventListener('submit',(e)=>{
+formMed.addEventListener('submit',(e)=>{
   e.preventDefault();
   const arr=getAll();
   const isEditing=!!editIdInput.value;
@@ -282,10 +211,9 @@ formMed?.addEventListener('submit',(e)=>{
   saveAll(arr); renderLista();
   formMed.reset(); document.querySelectorAll('.chip.selected').forEach(c=>c.classList.remove('selected'));
   btnCancelarEdicao.classList.add('hidden'); btnSalvar.textContent='Salvar';
-  notificar('Lembrete salvo para '+item.nome+' às '+item.hora); tocarSom();
 });
 
-// ---------- Alerta sonoro + Notificação ----------
+/* ========= Lembretes – alerta sonoro + notificação ========= */
 function tocarSom(){
   try{
     const ctx=new (window.AudioContext||window.webkitAudioContext)();
@@ -294,11 +222,7 @@ function tocarSom(){
     o.connect(g); g.connect(ctx.destination); o.start(); setTimeout(()=>{o.stop();ctx.close();},250);
   }catch(e){}
 }
-function notificar(txt){
-  if(window.Notification && Notification.permission==='granted'){
-    new Notification('MeuRemédio',{ body: txt });
-  }
-}
+function notificar(txt){ if('Notification' in window && Notification.permission==='granted'){ new Notification('MeuRemédio',{ body: txt }); } }
 Notification?.requestPermission?.();
 
 function checarAlarmes(){
@@ -308,7 +232,7 @@ function checarAlarmes(){
 }
 checarAlarmes(); renderLista();
 
-// ---------- Calendário (bônus) ----------
+/* ========= Calendário ========= */
 const calDiv=document.getElementById('calendario');
 const mesAnoEl=document.getElementById('mesAno');
 const prevBtn=document.getElementById('prevMes');
@@ -318,7 +242,6 @@ const calTexto=document.getElementById('calTexto');
 const btnAddCal=document.getElementById('btnAddCal');
 const calEventos=document.getElementById('calEventos');
 let ref = new Date(); ref.setDate(1);
-
 function desenharCal(){
   if(!calDiv) return;
   calDiv.innerHTML='';
@@ -340,7 +263,7 @@ function desenharCal(){
 }
 function listarEventosDia(dataStr){
   const all=getCal(); const evs=all[dataStr]||[];
-  calEventos.innerHTML='<h4>Eventos em '+dataStr+'</h4>'+(evs.length?'':'<p>Nenhum evento.</p>');
+  calEventos.innerHTML='<h4>Eventos em '+dataStr+'</h4>'+(evs.length?'':'<p class="note">Nenhum evento.</p>');
   evs.forEach((e,i)=>{
     const div=document.createElement('div'); div.className='dia ev'; div.style.padding='8px'; div.style.borderRadius='10px'; div.style.border='1px solid #bbf7d0'; div.textContent=e;
     const bt=document.createElement('button'); bt.textContent='Excluir'; bt.className='btn-icon'; bt.style.marginLeft='8px';
@@ -348,32 +271,23 @@ function listarEventosDia(dataStr){
     div.appendChild(bt); calEventos.appendChild(div);
   });
 }
-prevBtn?.addEventListener('click',()=>{ ref.setMonth(ref.getMonth()-1); desenharCal(); });
-nextBtn?.addEventListener('click',()=>{ ref.setMonth(ref.getMonth()+1); desenharCal(); });
-btnAddCal?.addEventListener('click',()=>{
+prevBtn.addEventListener('click',()=>{ ref.setMonth(ref.getMonth()-1); desenharCal(); });
+nextBtn.addEventListener('click',()=>{ ref.setMonth(ref.getMonth()+1); desenharCal(); });
+btnAddCal.addEventListener('click',()=>{
   const d=calData.value; const t=calTexto.value.trim(); if(!d||!t) return;
   const all=getCal(); all[d]=all[d]||[]; all[d].push(t); saveCal(all);
   calTexto.value=''; listarEventosDia(d); desenharCal();
 });
 desenharCal();
 
-// ---------- Receitas e Fotos (nova aba) ----------
+/* ========= Receitas ========= */
 const formFoto = document.getElementById('formFoto');
 const fotoId = document.getElementById('fotoId');
 const fotoNome = document.getElementById('fotoNome');
 const fotoData = document.getElementById('fotoData');
 const fotoObs  = document.getElementById('fotoObs');
 const galeria  = document.getElementById('galeria');
-const inpRec2  = document.getElementById('inpFotoReceita2');
-const inpMed2  = document.getElementById('inpFotoMed2');
-const prevRec2 = document.getElementById('prevRec2');
-const prevMed2 = document.getElementById('prevMed2');
 const btnCancelFoto = document.getElementById('btnCancelFoto');
-
-let recData2='', medData2='';
-inpRec2?.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; fileToDataURL(f,(d)=>{ recData2=d; prevRec2.src=d; prevRec2.classList.remove('hidden'); }); });
-inpMed2?.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; fileToDataURL(f,(d)=>{ medData2=d; prevMed2.src=d; prevMed2.classList.remove('hidden'); }); });
-
 function renderGaleria(){
   const arr = getFotos();
   if(!arr.length){ galeria.innerHTML='<p class="note">Nenhum registro salvo.</p>'; return; }
@@ -381,20 +295,20 @@ function renderGaleria(){
   arr.forEach((it,idx)=>{
     const card=document.createElement('div');
     card.className='list-item';
-    let imgs='';
-    if(it.rec){ imgs+=`<a target="_blank" href="${it.rec}">📄 Receita</a>  `; }
-    if(it.med){ imgs+=`<a target="_blank" href="${it.med}">💊 Foto medicamento</a>`; }
-    card.innerHTML = `
-      <div>
-        <div><strong>${it.nome}</strong> ${it.data?`<span class="badge">${it.data}</span>`:''}</div>
+    let thumbs='';
+    if(it.rec){ thumbs+=`<img src="${it.rec}" alt="Receita" style="width:72px;height:72px;object-fit:cover;border:1px solid #bbf7d0;border-radius:10px;margin-right:6px" />`; }
+    if(it.med){ thumbs+=`<img src="${it.med}" alt="Medicamento" style="width:72px;height:72px;object-fit:cover;border:1px solid #bbf7d0;border-radius:10px;margin-right:6px" />`; }
+    const links = `${it.rec? `<a target="_blank" href="${it.rec}">📄 Receita</a>`:''}${it.med? ` <a target="_blank" href="${it.med}">💊 Foto medicamento</a>`:''}`;
+    card.innerHTML = `<div>
+        <div><strong>${it.nome||'Sem título'}</strong> ${it.data?`<span class="badge">${it.data}</span>`:''}</div>
         ${it.obs? `<div class="note">${it.obs}</div>`:''}
-        <div class="thumbs">${imgs}</div>
+        <div class="thumbs" style="display:flex;align-items:center;margin:6px 0">${thumbs}</div>
+        <div class="links">${links}</div>
       </div>
       <div class="actions">
         <button class="btn-icon editR" data-idx="${idx}">✏️</button>
         <button class="btn-icon delR"  data-idx="${idx}">❌</button>
-      </div>
-    `;
+      </div>`;
     galeria.appendChild(card);
   });
   galeria.querySelectorAll('.delR').forEach(b=>b.addEventListener('click',(ev)=>{
@@ -403,56 +317,58 @@ function renderGaleria(){
   galeria.querySelectorAll('.editR').forEach(b=>b.addEventListener('click',(ev)=>{
     const i=+ev.currentTarget.getAttribute('data-idx'); const arr=getFotos(); const it=arr[i];
     fotoId.value=it.id; fotoNome.value=it.nome||''; fotoData.value=it.data||''; fotoObs.value=it.obs||'';
-    if(it.rec){ prevRec2.src=it.rec; prevRec2.classList.remove('hidden'); recData2=it.rec; }
-    if(it.med){ prevMed2.src=it.med; prevMed2.classList.remove('hidden'); medData2=it.med; }
-    btnCancelFoto?.classList.remove('hidden');
-    window.scrollTo({top:0,behavior:'smooth'});
+    if(it.rec){ const img=document.getElementById('prevRec2'); img.src=it.rec; img.classList.remove('hidden'); recData2=it.rec; }
+    if(it.med){ const img=document.getElementById('prevMed2'); img.src=it.med; img.classList.remove('hidden'); medData2=it.med; }
+    btnCancelFoto.classList.remove('hidden'); window.scrollTo({top:0,behavior:'smooth'});
   }));
 }
-btnCancelFoto?.addEventListener('click',()=>{
+btnCancelFoto.addEventListener('click',()=>{
   fotoId.value=''; formFoto.reset(); btnCancelFoto.classList.add('hidden');
-  prevRec2?.classList.add('hidden'); prevMed2?.classList.add('hidden'); recData2=''; medData2='';
+  document.getElementById('prevRec2').classList.add('hidden'); document.getElementById('prevMed2').classList.add('hidden');
+  recData2=''; medData2='';
 });
-formFoto?.addEventListener('submit',(e)=>{
+formFoto.addEventListener('submit',(e)=>{
   e.preventDefault();
   const arr=getFotos();
   const isEdit=!!fotoId.value;
-  const item={
-    id: isEdit? fotoId.value : String(Date.now()),
-    nome: fotoNome.value.trim(),
-    data: fotoData.value||'',
-    obs:  fotoObs.value.trim(),
-    rec:  recData2,
-    med:  medData2
-  };
-  if(isEdit){ const idx=arr.findIndex(x=>x.id===fotoId.value); if(idx>=0) arr[idx]=item; }
-  else arr.push(item);
+  const item={ id: isEdit? fotoId.value : String(Date.now()), nome: fotoNome.value.trim(), data: fotoData.value||'', obs:  fotoObs.value.trim(), rec:  recData2, med:  medData2 };
+  if(isEdit){ const idx=arr.findIndex(x=>x.id===fotoId.value); if(idx>=0) arr[idx]=item; } else arr.push(item);
   saveFotos(arr); renderGaleria();
   formFoto.reset(); fotoId.value=''; btnCancelFoto.classList.add('hidden');
-  prevRec2?.classList.add('hidden'); prevMed2?.classList.add('hidden'); recData2=''; medData2='';
+  document.getElementById('prevRec2').classList.add('hidden'); document.getElementById('prevMed2').classList.add('hidden'); recData2=''; medData2='';
 });
-
 renderGaleria();
 
-// ---------- Service Worker (PWA) ----------
-if('serviceWorker' in navigator){
-  window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('service-worker.js');
-  });
-}
+/* ========= Assistente (wizard) ========= */
+const overlay = document.getElementById('assistente');
+const steps = overlay.querySelectorAll('.passo');
+function openAssistente(){ overlay.classList.remove('hidden'); setStep(1); }
+function setStep(n){ steps.forEach(s=>s.classList.toggle('ativo', +s.dataset.step===n)); }
+document.getElementById('btnAssistente').onclick = openAssistente;
+document.getElementById('assistenteFechar').onclick = ()=> overlay.classList.add('hidden');
+overlay.querySelectorAll('.next').forEach(b=> b.onclick = ()=> setStep([...steps].find(s=>s.classList.contains('ativo')) ? ( +[...steps].find(s=>s.classList.contains('ativo')).dataset.step + 1 ) : 1 ));
+overlay.querySelectorAll('.prev').forEach(b=> b.onclick = ()=> setStep(Math.max(1, +[...steps].find(s=>s.classList.contains('ativo')).dataset.step - 1)));
+document.getElementById('assistSalvar').onclick = ()=>{
+  const nome = document.getElementById('aNome').value.trim();
+  let dose = overlay.querySelector('.chips[data-group="aDose"] .chip.selected')?.dataset.value || document.getElementById('aDoseOutro').value.trim() || '';
+  const hora = document.getElementById('aHora').value;
+  if(!nome || !hora){ alert('Preencha nome e horário.'); return; }
+  const arr=getAll(); arr.push({ id:String(Date.now()), nome, tipo:'pílula', dose, qtd:'1', hora, ativo:true }); saveAll(arr);
+  overlay.classList.add('hidden'); renderLista(); ativa('L');
+};
+// seleção chips no assistente
+overlay.querySelector('.chips[data-group="aDose"]').addEventListener('click', (ev)=>{
+  const b=ev.target.closest('.chip'); if(!b) return;
+  overlay.querySelectorAll('.chips[data-group="aDose"] .chip').forEach(x=>x.classList.remove('selected'));
+  b.classList.add('selected');
+});
 
-// ---------- Botão "Instalar app" ----------
-let deferredPrompt;
-const btnInstall = document.getElementById('btnInstall');
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (btnInstall) btnInstall.style.display = 'inline-block';
-});
-btnInstall?.addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  btnInstall.style.display = 'none';
-});
+/* ========= PWA Install ========= */
+let deferredPrompt; const btnInstall = document.getElementById('btnInstall');
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; btnInstall.style.display='inline-block'; });
+btnInstall?.addEventListener('click', async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; btnInstall.style.display = 'none'; });
+
+/* ========= SW ========= */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('service-worker.js'); });
+}
