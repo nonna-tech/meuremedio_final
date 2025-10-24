@@ -15,11 +15,13 @@
   <h1 class="logo">💊 MeuRemédio</h1>
 
   <div class="tabs">
-  <button id="tabLembretes" class="tabbtn active">Lembretes</button>
-  <button id="tabCalendario" class="tabbtn">Calendário (bônus)</button>
-  <button id="btnInstall" class="tabbtn" style="display:none">Instalar app</button>
-</div>
+    <button id="tabLembretes" class="tabbtn active">Lembretes</button>
+    <button id="tabCalendario" class="tabbtn">Calendário (bônus)</button>
+    <button id="tabReceitas" class="tabbtn">Receitas e Fotos</button>
+    <button id="btnInstall" class="tabbtn" style="display:none">Instalar app</button>
+  </div>
 
+  <!-- ABA: LEMBRETES -->
   <section id="viewLembretes">
     <section class="card">
       <h2>Perfil</h2>
@@ -76,19 +78,6 @@
         <label>Horário de tomar</label>
         <input id="medHora" type="time" required/>
 
-        <div class="grid2">
-          <div>
-            <label>Foto da receita (opcional)</label>
-            <input id="fotoReceita" type="file" accept="image/*"/>
-            <img id="prevReceita" class="preview hidden" alt="Prévia da receita"/>
-          </div>
-          <div>
-            <label>Foto do medicamento (opcional)</label>
-            <input id="fotoMedicamento" type="file" accept="image/*"/>
-            <img id="prevMedicamento" class="preview hidden" alt="Prévia do remédio"/>
-          </div>
-        </div>
-
         <div class="row">
           <button type="submit" class="btn-primary" id="btnSalvar">Salvar</button>
           <button type="button" class="btn-secondary hidden" id="btnCancelarEdicao">Cancelar</button>
@@ -99,6 +88,7 @@
     </section>
   </section>
 
+  <!-- ABA: CALENDÁRIO -->
   <section id="viewCalendario" class="hidden">
     <section class="card">
       <h2>Calendário</h2>
@@ -119,6 +109,45 @@
         <button id="btnAddCal" class="btn-primary">Adicionar ao dia</button>
         <div id="calEventos"></div>
       </div>
+    </section>
+  </section>
+
+  <!-- ABA: RECEITAS E FOTOS -->
+  <section id="viewReceitas" class="hidden">
+    <section class="card">
+      <h2>Receitas e Fotos</h2>
+      <p class="note">Guarde as imagens da receita e do medicamento. Opcional, para mostrar na farmácia ou ao médico.</p>
+      <form id="formFoto">
+        <input type="hidden" id="fotoId"/>
+        <label>Nome do remédio</label>
+        <input id="fotoNome" required placeholder="Ex.: Losartana 50 mg"/>
+
+        <div class="grid2">
+          <div>
+            <label>Foto da receita</label>
+            <input id="inpFotoReceita2" type="file" accept="image/*">
+            <img id="prevRec2" class="preview hidden" alt="Prévia receita">
+          </div>
+          <div>
+            <label>Foto do medicamento</label>
+            <input id="inpFotoMed2" type="file" accept="image/*">
+            <img id="prevMed2" class="preview hidden" alt="Prévia medicamento">
+          </div>
+        </div>
+
+        <label>Data da receita (opcional)</label>
+        <input id="fotoData" type="date">
+
+        <label>Observações (opcional)</label>
+        <input id="fotoObs" placeholder="Ex.: tomar após o almoço">
+
+        <div class="row">
+          <button type="submit" class="btn-primary" id="btnSalvarFoto">Salvar registro</button>
+          <button type="button" class="btn-secondary hidden" id="btnCancelFoto">Cancelar</button>
+        </div>
+      </form>
+
+      <div id="galeria" class="card"></div>
     </section>
   </section>
 </main>

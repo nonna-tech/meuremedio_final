@@ -1,26 +1,33 @@
 /* =========================
-   MeuRemédio – app.js COMPLETO
-   (lembretes + calendário bônus + fotos + alarmes + compartilhar + PWA)
+   MeuRemédio – app.js COMPLETO (com aba Receitas/Fotos)
 ========================= */
 
 // ---------- Abas ----------
 const tabL = document.getElementById('tabLembretes');
 const tabC = document.getElementById('tabCalendario');
+const tabR = document.getElementById('tabReceitas');
 const viewL = document.getElementById('viewLembretes');
 const viewC = document.getElementById('viewCalendario');
+const viewR = document.getElementById('viewReceitas');
 function ativarAba(alvo){
-  if(alvo==='L'){ viewL.classList.remove('hidden'); viewC.classList.add('hidden'); tabL?.classList.add('active'); tabC?.classList.remove('active'); }
-  else { viewC.classList.remove('hidden'); viewL.classList.add('hidden'); tabC?.classList.add('active'); tabL?.classList.remove('active'); }
+  const on = (v,active)=>{ v?.classList[active?'remove':'add']('hidden'); };
+  on(viewL, alvo!=='L'); on(viewC, alvo!=='C'); on(viewR, alvo!=='R');
+  tabL?.classList.toggle('active', alvo==='L');
+  tabC?.classList.toggle('active', alvo==='C');
+  tabR?.classList.toggle('active', alvo==='R');
 }
 tabL?.addEventListener('click',()=>ativarAba('L'));
 tabC?.addEventListener('click',()=>ativarAba('C'));
+tabR?.addEventListener('click',()=>ativarAba('R'));
 
 // ---------- Persistência ----------
-const DB_KEY='mr_remedios', CAL_KEY='mr_calendar';
+const DB_KEY='mr_remedios', CAL_KEY='mr_calendar', FOTOS_KEY='mr_fotos';
 const getAll=()=>JSON.parse(localStorage.getItem(DB_KEY)||'[]');
 const saveAll=(a)=>localStorage.setItem(DB_KEY,JSON.stringify(a));
 const getCal=()=>JSON.parse(localStorage.getItem(CAL_KEY)||'{}');
 const saveCal=(o)=>localStorage.setItem(CAL_KEY,JSON.stringify(o));
+const getFotos=()=>JSON.parse(localStorage.getItem(FOTOS_KEY)||'[]');
+const saveFotos=(a)=>localStorage.setItem(FOTOS_KEY,JSON.stringify(a));
 
 // ---------- Perfil ----------
 const boasVindas=document.getElementById('boasVindas');
@@ -63,7 +70,7 @@ function chipValue(group){
   return '';
 }
 
-// ---------- Upload/Prévia fotos ----------
+// ---------- Upload/Prévia fotos (helpers) ----------
 function fileToDataURL(f,cb){ const r=new FileReader(); r.onload=()=>cb(r.result); r.readAsDataURL(f); }
 const fotoReceita=document.getElementById('fotoReceita');
 const fotoMedicamento=document.getElementById('fotoMedicamento');
@@ -90,7 +97,6 @@ function renderLista(){
     el.innerHTML='<div>'
       +'<div><strong>'+r.nome+'</strong> <span class="badge '+(r.ativo?'':'badge-paused')+'">'+(r.tipo||'')+'</span></div>'
       +'<div>'+(r.dose? r.dose+' · ' :'')+(r.qtd? r.qtd+' un · ' :'')+'horário: <strong>'+(r.hora||'--:--')+'</strong></div>'
-      +'<div class="thumbs">'+(r.fotoReceita?'<a target="_blank" href="'+r.fotoReceita+'">📄 Receita</a>':'')+(r.fotoMedicamento?' <a target="_blank" href="'+r.fotoMedicamento+'">💊 Foto</a>':'')+'</div>'
       +'</div>'
       +'<div class="actions">'
       +'<button class="btn-icon toggle" title="Pausar/Ativar" data-idx="'+idx+'">'+(r.ativo?'🔔':'🔕')+'</button> '
@@ -101,7 +107,6 @@ function renderLista(){
     listaDiv.appendChild(el);
   });
 
-  // listeners de ação
   listaDiv.querySelectorAll('.toggle').forEach(b=>b.addEventListener('click',(ev)=>{
     const i=Number(ev.currentTarget.getAttribute('data-idx'));
     const arr=getAll(); arr[i].ativo=!arr[i].ativo; saveAll(arr); renderLista();
@@ -118,13 +123,11 @@ function renderLista(){
     document.getElementById('medHora').value=r.hora||'';
     document.querySelectorAll('.chip.selected').forEach(c=>c.classList.remove('selected'));
     selectChip('tipo',r.tipo); selectChip('dose',r.dose); selectChip('qtd',r.qtd);
-    if(r.fotoReceita){ prevReceita.src=r.fotoReceita; prevReceita.classList.remove('hidden'); fotoReceitaData=r.fotoReceita; }
-    if(r.fotoMedicamento){ prevMedicamento.src=r.fotoMedicamento; prevMedicamento.classList.remove('hidden'); fotoMedicamentoData=r.fotoMedicamento; }
     btnCancelarEdicao.classList.remove('hidden'); btnSalvar.textContent='Salvar alterações';
     window.scrollTo({top:0,behavior:'smooth'});
   }));
 
-  // compartilhar (Web Share API ou WhatsApp)
+  // compartilhar
   listaDiv.querySelectorAll('.share').forEach(b => b.addEventListener('click', ev => {
     const i = Number(ev.currentTarget.getAttribute('data-idx'));
     const r = getAll()[i]; if(!r) return;
@@ -148,11 +151,7 @@ btnCancelarEdicao?.addEventListener('click',()=>{
   editIdInput.value=''; formMed.reset();
   document.querySelectorAll('.chip.selected').forEach(c=>c.classList.remove('selected'));
   btnCancelarEdicao.classList.add('hidden'); btnSalvar.textContent='Salvar';
-  if(prevReceita){ prevReceita.src=''; prevReceita.classList.add('hidden'); }
-  if(prevMedicamento){ prevMedicamento.src=''; prevMedicamento.classList.add('hidden'); }
-  fotoReceitaData=''; fotoMedicamentoData='';
 });
-
 formMed?.addEventListener('submit',(e)=>{
   e.preventDefault();
   const arr=getAll();
@@ -164,8 +163,6 @@ formMed?.addEventListener('submit',(e)=>{
     dose: chipValue('dose'),
     qtd: chipValue('qtd'),
     hora: document.getElementById('medHora').value,
-    fotoReceita: fotoReceitaData,
-    fotoMedicamento: fotoMedicamentoData,
     ativo: true
   };
   if(isEditing){ const idx=arr.findIndex(x=>x.id===editIdInput.value); if(idx>=0){ item.ativo=arr[idx].ativo; arr[idx]=item; } }
@@ -173,9 +170,6 @@ formMed?.addEventListener('submit',(e)=>{
   saveAll(arr); renderLista();
   formMed.reset(); document.querySelectorAll('.chip.selected').forEach(c=>c.classList.remove('selected'));
   btnCancelarEdicao.classList.add('hidden'); btnSalvar.textContent='Salvar';
-  if(prevReceita){ prevReceita.src=''; prevReceita.classList.add('hidden'); }
-  if(prevMedicamento){ prevMedicamento.src=''; prevMedicamento.classList.add('hidden'); }
-  fotoReceitaData=''; fotoMedicamentoData=''; editIdInput.value='';
   notificar('Lembrete salvo para '+item.nome+' às '+item.hora); tocarSom();
 });
 
@@ -186,7 +180,7 @@ function tocarSom(){
     const o=ctx.createOscillator(); const g=ctx.createGain();
     o.type='sine'; o.frequency.value=880; g.gain.value=0.1;
     o.connect(g); g.connect(ctx.destination); o.start(); setTimeout(()=>{o.stop();ctx.close();},250);
-  }catch(e){ /* fallback silencioso */ }
+  }catch(e){}
 }
 function notificar(txt){
   if(window.Notification && Notification.permission==='granted'){
@@ -195,7 +189,6 @@ function notificar(txt){
 }
 Notification?.requestPermission?.();
 
-// checagem por minuto
 function checarAlarmes(){
   const arr=getAll(), d=new Date(), hh=String(d.getHours()).padStart(2,'0'), mm=String(d.getMinutes()).padStart(2,'0'), hhmm=hh+':'+mm;
   arr.forEach(r=>{ if(r.ativo && r.hora===hhmm){ notificar('Hora de tomar '+r.nome); tocarSom(); } });
@@ -252,6 +245,83 @@ btnAddCal?.addEventListener('click',()=>{
 });
 desenharCal();
 
+// ---------- Receitas e Fotos (nova aba) ----------
+const formFoto = document.getElementById('formFoto');
+const fotoId = document.getElementById('fotoId');
+const fotoNome = document.getElementById('fotoNome');
+const fotoData = document.getElementById('fotoData');
+const fotoObs  = document.getElementById('fotoObs');
+const galeria  = document.getElementById('galeria');
+const inpRec2  = document.getElementById('inpFotoReceita2');
+const inpMed2  = document.getElementById('inpFotoMed2');
+const prevRec2 = document.getElementById('prevRec2');
+const prevMed2 = document.getElementById('prevMed2');
+const btnCancelFoto = document.getElementById('btnCancelFoto');
+
+let recData2='', medData2='';
+inpRec2?.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; fileToDataURL(f,(d)=>{ recData2=d; prevRec2.src=d; prevRec2.classList.remove('hidden'); }); });
+inpMed2?.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; fileToDataURL(f,(d)=>{ medData2=d; prevMed2.src=d; prevMed2.classList.remove('hidden'); }); });
+
+function renderGaleria(){
+  const arr = getFotos();
+  if(!arr.length){ galeria.innerHTML='<p class="note">Nenhum registro salvo.</p>'; return; }
+  galeria.innerHTML='';
+  arr.forEach((it,idx)=>{
+    const card=document.createElement('div');
+    card.className='list-item';
+    let imgs='';
+    if(it.rec){ imgs+=`<a target="_blank" href="${it.rec}">📄 Receita</a>  `; }
+    if(it.med){ imgs+=`<a target="_blank" href="${it.med}">💊 Foto medicamento</a>`; }
+    card.innerHTML = `
+      <div>
+        <div><strong>${it.nome}</strong> ${it.data?`<span class="badge">${it.data}</span>`:''}</div>
+        ${it.obs? `<div class="note">${it.obs}</div>`:''}
+        <div class="thumbs">${imgs}</div>
+      </div>
+      <div class="actions">
+        <button class="btn-icon editR" data-idx="${idx}">✏️</button>
+        <button class="btn-icon delR"  data-idx="${idx}">❌</button>
+      </div>
+    `;
+    galeria.appendChild(card);
+  });
+  galeria.querySelectorAll('.delR').forEach(b=>b.addEventListener('click',(ev)=>{
+    const i=+ev.currentTarget.getAttribute('data-idx'); const arr=getFotos(); arr.splice(i,1); saveFotos(arr); renderGaleria();
+  }));
+  galeria.querySelectorAll('.editR').forEach(b=>b.addEventListener('click',(ev)=>{
+    const i=+ev.currentTarget.getAttribute('data-idx'); const arr=getFotos(); const it=arr[i];
+    fotoId.value=it.id; fotoNome.value=it.nome||''; fotoData.value=it.data||''; fotoObs.value=it.obs||'';
+    if(it.rec){ prevRec2.src=it.rec; prevRec2.classList.remove('hidden'); recData2=it.rec; }
+    if(it.med){ prevMed2.src=it.med; prevMed2.classList.remove('hidden'); medData2=it.med; }
+    btnCancelFoto?.classList.remove('hidden');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }));
+}
+btnCancelFoto?.addEventListener('click',()=>{
+  fotoId.value=''; formFoto.reset(); btnCancelFoto.classList.add('hidden');
+  prevRec2?.classList.add('hidden'); prevMed2?.classList.add('hidden'); recData2=''; medData2='';
+});
+formFoto?.addEventListener('submit',(e)=>{
+  e.preventDefault();
+  const arr=getFotos();
+  const isEdit=!!fotoId.value;
+  const item={
+    id: isEdit? fotoId.value : String(Date.now()),
+    nome: fotoNome.value.trim(),
+    data: fotoData.value||'',
+    obs:  fotoObs.value.trim(),
+    rec:  recData2,
+    med:  medData2
+  };
+  if(isEdit){ const idx=arr.findIndex(x=>x.id===fotoId.value); if(idx>=0) arr[idx]=item; }
+  else arr.push(item);
+  saveFotos(arr); renderGaleria();
+  formFoto.reset(); fotoId.value=''; btnCancelFoto.classList.add('hidden');
+  prevRec2?.classList.add('hidden'); prevMed2?.classList.add('hidden'); recData2=''; medData2='';
+});
+
+renderGaleria();
+
 // ---------- Service Worker (PWA) ----------
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
@@ -259,7 +329,7 @@ if('serviceWorker' in navigator){
   });
 }
 
-// ---------- Botão "Instalar app" (precisa existir no HTML) ----------
+// ---------- Botão "Instalar app" ----------
 let deferredPrompt;
 const btnInstall = document.getElementById('btnInstall');
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -274,7 +344,3 @@ btnInstall?.addEventListener('click', async () => {
   deferredPrompt = null;
   btnInstall.style.display = 'none';
 });
-// DEBUG: mostrar botão de instalar sempre (remova depois!)
-const dbg = document.getElementById('btnInstall');
-if (dbg) dbg.style.display = 'inline-block';
-
