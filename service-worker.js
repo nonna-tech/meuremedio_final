@@ -1,15 +1,23 @@
-const CACHE = 'mr-v2';
-const ASSETS = [
-  'index.html',
-  'css/style.css',
-  'js/app.js',
-  'manifest.json',
-  'img/icon-192.png',
-  'img/icon-512.png'
+// service-worker.js (versão v3)
+const CACHE = 'mr-v3';
+const FILES = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/css/style.css',
+  '/js/app.js',
+  '/img/icon-192.png',
+  '/img/icon-512.png'
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
+});
+
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request))
+  );
 });
 
 self.addEventListener('activate', e => {
@@ -20,6 +28,3 @@ self.addEventListener('activate', e => {
   );
 });
 
-self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-});
