@@ -6,19 +6,35 @@
 const tabL = document.getElementById('tabLembretes');
 const tabC = document.getElementById('tabCalendario');
 const tabR = document.getElementById('tabReceitas');
+
 const viewL = document.getElementById('viewLembretes');
 const viewC = document.getElementById('viewCalendario');
 const viewR = document.getElementById('viewReceitas');
-function ativarAba(alvo){
-  const on = (v,active)=>{ v?.classList[active?'remove':'add']('hidden'); };
-  on(viewL, alvo!=='L'); on(viewC, alvo!=='C'); on(viewR, alvo!=='R');
-  tabL?.classList.toggle('active', alvo==='L');
-  tabC?.classList.toggle('active', alvo==='C');
-  tabR?.classList.toggle('active', alvo==='R');
+
+function show(view, isActive) {
+  if (!view) return;
+  if (isActive) view.classList.remove('hidden');
+  else view.classList.add('hidden');
 }
-tabL?.addEventListener('click',()=>ativarAba('L'));
-tabC?.addEventListener('click',()=>ativarAba('C'));
-tabR?.addEventListener('click',()=>ativarAba('R'));
+
+function ativarAba(alvo) {
+  show(viewL, alvo === 'L');
+  show(viewC, alvo === 'C');
+  show(viewR, alvo === 'R');
+
+  tabL?.classList.toggle('active', alvo === 'L');
+  tabC?.classList.toggle('active', alvo === 'C');
+  tabR?.classList.toggle('active', alvo === 'R');
+}
+
+// listeners
+tabL?.addEventListener('click', () => ativarAba('L'));
+tabC?.addEventListener('click', () => ativarAba('C'));
+tabR?.addEventListener('click', () => ativarAba('R'));
+
+// estado inicial
+ativarAba('L');
+
 
 // ---------- Persistência ----------
 const DB_KEY='mr_remedios', CAL_KEY='mr_calendar', FOTOS_KEY='mr_fotos';
