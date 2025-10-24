@@ -274,4 +274,7 @@ btnInstall?.addEventListener('click', async () => {
   deferredPrompt = null;
   btnInstall.style.display = 'none';
 });
+// DEBUG: mostrar botão de instalar sempre (remova depois!)
+const dbg = document.getElementById('btnInstall');
+if (dbg) dbg.style.display = 'inline-block';
 
